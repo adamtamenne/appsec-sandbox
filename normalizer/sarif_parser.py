@@ -11,22 +11,21 @@ from normalizer.models import (
 )
 
 
-def _extract_cwe(result: dict, tool_name: str) -> str | None:
-    """Extract CWE from a SARIF result. Location varies by tool."""
-    props = result.get("properties", {})
+def _extract_cwe(result: dict, rule_meta: dict, tool_name: str) -> str | None:
+    """Extract CWE from SARIF rule or result properties.
 
-    # Semgrep: properties.cwe is a list like ["CWE-79: ..."]
-    cwe_list = props.get("cwe", [])
-    if cwe_list:
-        return cwe_list[0].split(":")[0].strip()
+    Semgrep puts CWE on the rule, not the result. Check both.
+    """
+    for props in [rule_meta.get("properties", {}), result.get("properties", {})]:
+        cwe_list = props.get("cwe", [])
+        if cwe_list:
+            return cwe_list[0].split(":")[0].strip()
 
-    # Trivy: CWE may appear in properties.tags
-    tags = props.get("tags", [])
-    for tag in tags:
-        if tag.upper().startswith("CWE-"):
-            return tag.split(":")[0].strip().upper()
+        tags = props.get("tags", [])
+        for tag in tags:
+            if isinstance(tag, str) and tag.upper().startswith("CWE-"):
+                return tag.split(":")[0].strip().upper()
 
-    # Gitleaks: no native CWE mapping — hardcode secrets to CWE-798
     if tool_name == "gitleaks":
         return "CWE-798"
 
@@ -75,14 +74,17 @@ def parse_sarif(sarif_path: Path, tool_name: str) -> list[Finding]:
                 )
             severity = SARIF_LEVEL_MAP.get(level, Severity.MEDIUM)
 
-            short_desc = rule_meta.get("shortDescription", {})
-            title = short_desc.get("text", rule_id)
+            title = (
+                rule_meta.get("shortDescription", {}).get("text")
+                or rule_meta.get("fullDescription", {}).get("text", "")[:120]
+                or rule_id
+            )
 
             description = result.get("message", {}).get("text", "")
 
             findings.append(
                 Finding(
-                    cwe=_extract_cwe(result, tool_name),
+                    cwe=_extract_cwe(result, rule_meta, tool_name),
                     title=title,
                     severity=severity,
                     description=description,
