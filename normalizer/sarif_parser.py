@@ -42,6 +42,10 @@ def _extract_location(result: dict) -> str:
     artifact = phys.get("artifactLocation", {})
     uri = artifact.get("uri", "unknown")
 
+    # Strip clone working directory prefix
+    if "source/" in uri:
+        uri = uri.split("source/", 1)[1]
+
     region = phys.get("region", {})
     line = region.get("startLine")
 
