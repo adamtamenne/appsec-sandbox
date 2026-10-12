@@ -1,0 +1,8 @@
+# OWASP Juice Shop — the primary demo target
+target:
+  image: bkimminich/juice-shop:latest
+  port: 3000
+  repo: https://github.com/juice-shop/juice-shop.git
+  description: >
+    Intentionally insecure Node.js/Express app covering OWASP Top 10.
+    Rich attack surface for SAST (XSS, SQLi in source) and DAST (runtime injection).

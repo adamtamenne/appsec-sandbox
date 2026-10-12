@@ -1,0 +1,32 @@
+services:
+  target:
+    image: ${TARGET_IMAGE}
+    networks:
+      - scannet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${TARGET_PORT}/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: "no"
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    networks:
+      - scannet
+    depends_on:
+      target:
+        condition: service_healthy
+    command: >
+      zap.sh -daemon
+      -host 0.0.0.0
+      -port 8080
+      -config api.disablekey=true
+      -config api.addrs.addr.name=.*
+      -config api.addrs.addr.regex=true
+    ports:
+      - "8080:8080"
+
+networks:
+  scannet:
+    internal: true

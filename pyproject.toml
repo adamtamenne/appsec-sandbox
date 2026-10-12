@@ -1,0 +1,22 @@
+[project]
+name = "appsec-sandbox"
+version = "0.1.0"
+description = "Automated AppSec analysis pipeline: SAST, SCA, secrets, and DAST scanning with cross-tool normalization"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "docker>=7.0",
+    "requests>=2.31",
+    "jinja2>=3.1",
+]
+
+[project.scripts]
+appsec-sandbox = "cli:main"
+
+[tool.setuptools]
+packages = ["runners", "normalizer", "reporter"]
+py-modules = ["cli", "config"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,8 @@
+# Damn Vulnerable Web Application — PHP validation target
+target:
+  image: vulnerables/web-dvwa:latest
+  port: 80
+  repo: https://github.com/digininja/DVWA.git
+  description: >
+    Classic PHP vulnerable app. Different language/framework than Juice Shop,
+    good for validating that the pipeline is language-agnostic.
